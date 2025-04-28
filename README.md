@@ -6,10 +6,10 @@ This project automates the process of calling a drug screen hotline, analyzing t
 
 *   **Automated Calling:** Places calls to the hotline using Twilio.
 *   **Call Recording:** Records the audio message from the hotline.
-*   **AI Analysis:** Uses Google Gemini to transcribe the audio and extract scheduling details.
-*   **Push Notifications:** Sends results, logs, and errors via a self-hosted NTFY server.
+*   **AI Analysis:** Uses Google Gemini to analyze scheduling details.
+*   **Push Notifications:** Sends results to the user via a self-hosted NTFY server.
 *   **Modular Structure:** Code organized into logical modules (`config_loader`, `telephony`, `audio_analyzer`, `logger`, `notifier`).
-*   **Robust Scheduling:** Uses `systemd` timers for reliable execution on Linux servers.
+*   **Scheduling:** Uses `systemd` timers for reliable execution on Linux server.
 *   **Secure Configuration:** Uses a `.env` file for sensitive credentials.
 *   **HTTPS:** NTFY server exposed securely via HTTPS using Caddy reverse proxy.
 
@@ -29,16 +29,14 @@ This project automates the process of calling a drug screen hotline, analyzing t
 
 1.  **Clone the repository:**
     ```bash
-    git clone <your-repo-url>
+    git clone <adsh-project-url>
     cd adsh-project
     ```
 
 2.  **Create and activate a virtual environment:**
     ```bash
-    python3.12 -m venv venv
+    python3.12 -m venv venv # Ensure you have Python >= 3.12 installed
     source venv/bin/activate # On Windows use `venv\Scripts\activate`
-    # Or use your pyenv environment
-    # pyenv activate adsh-env
     ```
 
 3.  **Install dependencies:**

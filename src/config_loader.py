@@ -1,5 +1,4 @@
 import os
-import datetime
 from dotenv import load_dotenv
 import google.generativeai as genai
 from pathlib import Path
@@ -30,12 +29,10 @@ def load_config():
         "hotline_phone_number": os.getenv("HOTLINE_PHONE_NUMBER"),
         "personal_phone_number": os.getenv("PERSONAL_PHONE_NUMBER"),
         "google_api_key": os.getenv("GOOGLE_API_KEY"),
-        "target_color": os.getenv("TARGET_COLOR", "blue").lower(),
         "recordings_dir": os.path.join(adsh_data_dir, RECORDINGS_DIR), # Construct recordings dir path using adsh_data_dir
         "log_file": os.path.join(adsh_data_dir, 'logs', 'adsh_log.md'), # Construct log file path using adsh_data_dir
         # NTFY Configuration
         "ntfy_server_url": os.getenv("NTFY_SERVER_URL"),
-        "ntfy_topic_alerts": os.getenv("NTFY_TOPIC_ALERTS"), # Specific topic for alerts
         "ntfy_topic_logs": os.getenv("NTFY_TOPIC_LOGS"),   # Specific topic for logs
         "ntfy_topic_errors": os.getenv("NTFY_TOPIC_ERRORS"), # Specific topic for errors
         "ntfy_username": os.getenv("NTFY_USERNAME"),
@@ -45,7 +42,7 @@ def load_config():
     required_keys = [
         "TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_PHONE_NUMBER",
         "HOTLINE_PHONE_NUMBER", "GOOGLE_API_KEY", # Keep PERSONAL_PHONE_NUMBER optional
-        "NTFY_SERVER_URL", "NTFY_TOPIC_ALERTS", "NTFY_TOPIC_LOGS", "NTFY_TOPIC_ERRORS",
+        "NTFY_SERVER_URL", "NTFY_TOPIC_LOGS", "NTFY_TOPIC_ERRORS",
         "NTFY_USERNAME", "NTFY_PASSWORD"
         # TARGET_COLOR has a default; LOG_FILE and RECORDINGS_DIR are derived
     ]
@@ -80,4 +77,7 @@ def load_config():
         raise ValueError("Missing environment variable: GOOGLE_API_KEY")
     else:
         genai.configure(api_key=config['google_api_key'])
+
     return config
+
+# --- Optional: Load INI config (if needed in future) ---

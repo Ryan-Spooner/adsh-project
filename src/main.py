@@ -4,6 +4,8 @@ from twilio.base.exceptions import TwilioRestException
 from google.api_core import exceptions as google_exceptions
 import requests
 import os
+import time
+import sys
 
 from .config_loader import load_config
 from .telephony import (
@@ -76,42 +78,64 @@ def main():
             color, date_found, summary = analyze_audio_with_gemini(permanent_audio_path)
             print(f"   Analysis result - Color: {color}, Date: {date_found}")
 
-            # 8. Log Result to file
-            # Consider adding date_found to log entry if useful
-            append_log_entry(config['log_file'], color, summary) # Currently logs color and summary
+            if color and summary:
+                print(f"   [Main] Analysis complete. Detected Color: {color}")
+                # Append to structured log file
+                # Extract date found from summary (assuming it's part of the summary)
+                # This is a placeholder, replace with actual date extraction if implemented
+                date_found = "N/A" # Example: extract_date(summary) 
+                append_log_entry(config['log_file'], color, summary, date_found) 
 
-            # --- Prepare and Send Notifications ---
-            # Common elements
-            ntfy_args = {
-                "server_url": config["ntfy_server_url"],
-                "username": config["ntfy_username"],
-                "password": config["ntfy_password"],
-            }
+                # Prepare shared notification args
+                ntfy_args = {
+                    "server_url": config["ntfy_server_url"],
+                    "username": config.get("ntfy_username"),
+                    "password": config.get("ntfy_password"),
+                }
 
-            # Send Log Notification (lower priority) - New Format
-            log_title = f"{color.capitalize()}, {date_found if date_found != 'N/A' else 'Date Unknown'}" # Simplified Title
-            log_message = f"Summary: {summary}" # Simplified Message
-            send_ntfy_notification(
-                **ntfy_args,
-                topic=config["ntfy_topic_logs"], # Use logs topic
-                title=log_title,
-                message=log_message,
-                priority=3 # Lower priority for logs
-            )
-
-            # Send Alert Notification if target color found (high priority) - New Format
-            if color == config['target_color']:
-                alert_title = f"{color.capitalize()}, {date_found if date_found != 'N/A' else 'Date Unknown'}" # Simplified Title (consistent with logs)
-                # Message body can be similar or more specific
-                alert_message = f"Summary: {summary}" # Simplified Message
-                print(f"   [Main] Target color '{color}' found, sending alert...")
+                # --- Send High-Priority Color Alert --- 
+                alert_title = f"ADSH Result: {color.capitalize()}"
+                alert_message = f"Detected color: {color.capitalize()}. Summary: {summary}"
+                print(f"   [Main] Color '{color}' detected, sending high-priority alert...")
                 send_ntfy_notification(
                     **ntfy_args,
-                    topic=config["ntfy_topic_alerts"], # Use alerts topic
+                    topic=color.lower(), # Use the detected color as the topic
                     title=alert_title,
                     message=alert_message,
                     priority=5 # Highest priority for alerts
                 )
+                # --- (End High-Priority Alert) ---
+
+            else:
+                print("   [Main] Analysis did not return a valid color or summary.")
+                # No color detected, so alert_title/message won't be set for the log below
+
+            # --- Send Completion Log Notification (Always, Low Priority) ---
+            print("   [Main] Sending completion log notification...")
+            log_topic = config["ntfy_topic_logs"]
+            log_priority = 2 # Low priority
+
+            # Default title/message if no color was detected or analysis skipped
+            log_title = "ADSH Run Log: Finished"
+            log_message = f"ADSH script run finished at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC."
+
+            # If a color *was* detected earlier, use its alert content for the log message
+            if 'color' in locals() and color and 'alert_title' in locals() and 'alert_message' in locals(): 
+                log_title = alert_title # Use the same title as the color alert
+                log_message = alert_message # Use the same message as the color alert
+            else:
+                # Adjust default message if no color was specifically found
+                log_message += " No specific color detected or analysis skipped."
+                
+            send_ntfy_notification(
+                **ntfy_args, # Re-use server, user, pass args
+                topic=log_topic,
+                title=log_title, # Use the determined title
+                message=log_message, # Use the determined message
+                priority=log_priority # Use low priority
+            )
+            # --- (End Completion Log) ---
+
         else:
             print("   Skipping analysis and logging because audio download failed.")
             # Optionally send error notification here?

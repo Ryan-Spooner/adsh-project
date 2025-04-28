@@ -1,0 +1,17 @@
+.DS_Store
+memory-bank/
+.windsurfrules
+projectBrief.md
+adsh.code-workspace
+docs/
+recordings/*.wav
+venv/
+config/ntfy/server.yml
+config/ntfy/user.db
+
+# Environment variables
+.env
+
+# Python cache
+__pycache__/
+*.pyc

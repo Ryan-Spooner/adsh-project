@@ -1,0 +1,21 @@
+[Unit]
+Description=Run the ADSH script to check for alerts
+
+[Service]
+Type=oneshot
+User=adshuser
+Group=adshuser
+
+# Set the working directory to the project root on the server
+WorkingDirectory=/opt/adsh-project
+
+# Define the command to execute the wrapper script
+# Make sure run_adsh.sh is executable (chmod +x)
+ExecStart=/opt/adsh-project/run_adsh.sh
+
+# Optional: Define environment variables if needed
+# Environment="PATH=/opt/adsh-project/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+# Environment="YOUR_VAR=your_value"
+
+[Install]
+WantedBy=multi-user.target

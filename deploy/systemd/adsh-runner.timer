@@ -1,0 +1,19 @@
+[Unit]
+Description=Run ADSH script periodically (8am, 12pm, 5pm)
+
+[Timer]
+# Define the schedule to run the service
+# Runs daily at 8:00, 12:00, and 17:00 server time
+OnCalendar=*-*-* 08,12,17:00:00
+
+# Specifies the service unit to activate when the timer elapses
+Unit=adsh-runner.service
+
+# Persist=true (Optional): If the server was down during a scheduled run,
+# run the job as soon as possible after the next boot.
+# Consider if this behavior is desired for your application.
+# Persist=true
+
+[Install]
+# Ensures the timer is enabled and started at boot
+WantedBy=timers.target

@@ -7,10 +7,16 @@
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 PROJECT_ROOT="$SCRIPT_DIR"
 
+# Define the external data directory (MODIFY IF NEEDED ON SERVER)
+export ADSH_DATA_DIR="/home/adsh-admin/adsh-data"
+
 VENV_PATH="${PROJECT_ROOT}/venv"
 PYTHON_EXEC="${VENV_PATH}/bin/python"
 MAIN_SCRIPT="${PROJECT_ROOT}/src/main.py"
-LOG_FILE="${PROJECT_ROOT}/log/cron_run.log"
+LOG_FILE="${ADSH_DATA_DIR}/logs/cron_run.log"
+
+# Ensure the log directory exists
+mkdir -p "$(dirname "${LOG_FILE}")"
 
 # --- Debugging --- (Comment out for production)
 # echo "--- Debugging ADSH Script Start ($(date)) ---"

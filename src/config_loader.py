@@ -2,15 +2,28 @@ import os
 import datetime
 from dotenv import load_dotenv
 import google.generativeai as genai
+from pathlib import Path
 
-RECORDINGS_DIR = "recordings" # Directory to save recordings
-LOG_DIR = "log" # Directory for log file
+RECORDINGS_DIR = "recordings" # Base directory name for recordings
 
 # --- Configuration Loading ---
 def load_config():
     """Load environment variables from .env file and return them."""
-    load_dotenv()  # Load variables from .env
+    
+    # --- Load .env from external data directory --- 
+    adsh_data_dir = os.getenv('ADSH_DATA_DIR')
+    if not adsh_data_dir:
+        raise EnvironmentError("Required environment variable ADSH_DATA_DIR is not set.")
+    
+    dotenv_path = Path(adsh_data_dir) / 'config' / '.env'
+    if not dotenv_path.is_file():
+        raise FileNotFoundError(f".env file not found at expected location: {dotenv_path}")
+        
+    load_dotenv(dotenv_path=dotenv_path)  # Load variables from the specific .env file
+
+    # --- Read Environment Variables --- 
     config = {
+        "adsh_data_dir": adsh_data_dir, # Add data dir path to config
         "twilio_account_sid": os.getenv("TWILIO_ACCOUNT_SID"),
         "twilio_auth_token": os.getenv("TWILIO_AUTH_TOKEN"),
         "twilio_phone_number": os.getenv("TWILIO_PHONE_NUMBER"),
@@ -18,8 +31,8 @@ def load_config():
         "personal_phone_number": os.getenv("PERSONAL_PHONE_NUMBER"),
         "google_api_key": os.getenv("GOOGLE_API_KEY"),
         "target_color": os.getenv("TARGET_COLOR", "blue").lower(),
-        "log_file": os.path.join(LOG_DIR, "adsh_log.md"), # Use LOG_DIR constant
-        "recordings_dir": RECORDINGS_DIR, # Add recordings dir to config
+        "recordings_dir": os.path.join(adsh_data_dir, RECORDINGS_DIR), # Construct recordings dir path using adsh_data_dir
+        "log_file": os.path.join(adsh_data_dir, 'logs', 'adsh_log.md'), # Construct log file path using adsh_data_dir
         # NTFY Configuration
         "ntfy_server_url": os.getenv("NTFY_SERVER_URL"),
         "ntfy_topic_alerts": os.getenv("NTFY_TOPIC_ALERTS"), # Specific topic for alerts
@@ -46,34 +59,25 @@ def load_config():
     if missing_keys:
         raise ValueError(
             f"Missing or empty required environment variables: {', '.join(missing_keys)}. "
-            f"Please check your .env file."
+            f"Please check your .env file at {dotenv_path}"
         )
     # ------------------------------------
 
-    # Ensure recordings directory exists
-    recordings_dir = config.get("recordings_dir")
-    if not os.path.exists(recordings_dir):
-        try:
-            os.makedirs(recordings_dir)
-            print(f"   Created directory: {recordings_dir}")
-        except OSError as e:
-            raise ValueError(f"Could not create recordings directory '{recordings_dir}': {e}")
+    # --- Ensure Required Directories Exist (Only Recordings now) ---
+    # Get paths from the final config dict
+    recordings_path = config['recordings_dir']
 
-    # Ensure log directory exists
-    log_file_path = config['log_file']
-    log_dir_path = os.path.dirname(log_file_path)
-    if log_dir_path and not os.path.exists(log_dir_path):
-        try:
-            os.makedirs(log_dir_path)
-            print(f"   Created directory: {log_dir_path}")
-        except OSError as e:
-            # Avoid raising error if dir already exists due to race condition
-            if not os.path.isdir(log_dir_path):
-                 raise ValueError(f"Could not create log directory '{log_dir_path}': {e}")
+    try:
+        os.makedirs(recordings_path, exist_ok=True)
+        print(f"   Ensured directory exists: {recordings_path}")
+    except OSError as e:
+        # Handle potential permission errors or other OS issues
+        print(f"[ERROR] Could not create directories: {e}")
+        raise
 
-    # Configure Google API Key
-    if config['google_api_key']:
-        genai.configure(api_key=config['google_api_key'])
-    else:
+    # Validate GOOGLE_API_KEY specifically for Gemini setup
+    if not config.get("google_api_key"):
         raise ValueError("Missing environment variable: GOOGLE_API_KEY")
+    else:
+        genai.configure(api_key=config['google_api_key'])
     return config

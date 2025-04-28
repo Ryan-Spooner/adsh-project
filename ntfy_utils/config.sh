@@ -5,7 +5,7 @@
 # --- Server Configuration --- 
 # MODIFY THESE PATHS AND NAMES TO MATCH YOUR SERVER SETUP
 CONTAINER_NAME="ntfy-adsh"                  # Name for the Podman container
-HOST_CONFIG_DIR="/home/adsh-admin/ntfy-data" # ABSOLUTE path to config dir on server (MUST contain server.yml, user.db)
+HOST_CONFIG_DIR="/home/adsh-admin/adsh-data/config/ntfy" # ABSOLUTE path to NTFY config dir on server
 HOST_PORT="8080"                             # Localhost port NTFY listens on (Caddy proxies TO this)
 
 # --- Container/Image Configuration --- 

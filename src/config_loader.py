@@ -1,7 +1,6 @@
 import os
 from dotenv import load_dotenv
 import google.generativeai as genai
-from pathlib import Path
 
 RECORDINGS_DIR = "recordings" # Base directory name for recordings
 
@@ -9,16 +8,14 @@ RECORDINGS_DIR = "recordings" # Base directory name for recordings
 def load_config():
     """Load environment variables from .env file and return them."""
     
-    # --- Load .env from external data directory --- 
+    # Automatically load environment variables from .env located in the 
+    # current working directory (project root) or its parents.
+    load_dotenv()
+    
+    # Get the data directory path *after* loading .env
     adsh_data_dir = os.getenv('ADSH_DATA_DIR')
     if not adsh_data_dir:
-        raise EnvironmentError("Required environment variable ADSH_DATA_DIR is not set.")
-    
-    dotenv_path = Path(adsh_data_dir) / 'config' / '.env'
-    if not dotenv_path.is_file():
-        raise FileNotFoundError(f".env file not found at expected location: {dotenv_path}")
-        
-    load_dotenv(dotenv_path=dotenv_path)  # Load variables from the specific .env file
+        raise EnvironmentError("Required environment variable ADSH_DATA_DIR is not set (should be in .env or exported).")
 
     # --- Read Environment Variables --- 
     config = {
@@ -56,7 +53,7 @@ def load_config():
     if missing_keys:
         raise ValueError(
             f"Missing or empty required environment variables: {', '.join(missing_keys)}. "
-            f"Please check your .env file at {dotenv_path}"
+            f"Please check your .env file at the project root."
         )
     # ------------------------------------
 

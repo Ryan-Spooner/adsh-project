@@ -3,8 +3,9 @@ Description=Run ADSH script periodically (8am, 12pm, 5pm)
 
 [Timer]
 # Define the schedule to run the service
-# Runs daily at 8:00, 12:00, and 17:00 server time
-OnCalendar=*-*-* 08,12,17:00:00
+# Runs daily at 8:00, 12:00, and 17:00 Pacific Time (PDT=UTC-7)
+# Corresponds to 15:00, 19:00, and 00:00 UTC
+OnCalendar=*-*-* 15,19,00:00:00
 
 # Specifies the service unit to activate when the timer elapses
 Unit=adsh-runner.service

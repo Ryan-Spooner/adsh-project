@@ -19,6 +19,14 @@ from .audio_analyzer import analyze_audio_with_gemini
 from .logger import append_log_entry
 from .notifier import send_ntfy_notification
 
+def get_day_with_ordinal(d):
+    """Returns the day of the month with its ordinal suffix (e.g., 1st, 2nd, 3rd, 4th)."""
+    if 11 <= d <= 13:
+        suffixes = {11: 'th', 12: 'th', 13: 'th'}
+        return str(d) + suffixes.get(d)
+    suffixes = {1: 'st', 2: 'nd', 3: 'rd'}
+    return str(d) + suffixes.get(d % 10, 'th')
+
 def main():
     """Main execution function to orchestrate the call and analysis process."""
     start_time_iso = datetime.datetime.now().isoformat() # Capture start time
@@ -95,10 +103,16 @@ def main():
                     "password": config.get("ntfy_password"),
                 }
 
+                # Get current date for title
+                now = datetime.datetime.now()
+                day_with_ordinal = get_day_with_ordinal(now.day)
+                month_name = now.strftime("%B") # Full month name, e.g., April
+                formatted_date = f"{month_name} {day_with_ordinal}"
+
                 # --- Send High-Priority Color Alert --- 
-                alert_title = f"ADSH Result: {color.capitalize()}"
-                alert_message = f"Detected color: {color.capitalize()}. Summary: {summary}"
-                print(f"   [Main] Color '{color}' detected, sending high-priority alert...")
+                alert_title = f"{color.capitalize()}, {formatted_date}" # NEW TITLE FORMAT
+                alert_message = summary # NEW MESSAGE FORMAT (Just summary)
+                print(f"   [Main] Color '{color}' detected, sending high-priority alert ({alert_title})...")
                 send_ntfy_notification(
                     **ntfy_args,
                     topic=color.lower(), # Use the detected color as the topic
@@ -121,14 +135,15 @@ def main():
             log_title = "ADSH Run Log: Finished"
             log_message = f"ADSH script run finished at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC."
 
-            # If a color *was* detected earlier, use its alert content for the log message
-            if 'color' in locals() and color and 'alert_title' in locals() and 'alert_message' in locals(): 
-                log_title = alert_title # Use the same title as the color alert
-                log_message = alert_message # Use the same message as the color alert
+            # If a color *was* detected earlier, set a specific log title/message
+            if 'color' in locals() and color and 'summary' in locals():
+                # Use a distinct format for the completion log, even if color was found
+                log_title = f"ADSH Result: {color.capitalize()} (Run Complete)" # Adjusted log title
+                log_message = summary # Just include the summary in the log message
             else:
                 # Adjust default message if no color was specifically found
                 log_message += " No specific color detected or analysis skipped."
-                
+
             send_ntfy_notification(
                 **ntfy_args, # Re-use server, user, pass args
                 topic=log_topic,

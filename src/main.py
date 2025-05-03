@@ -91,7 +91,7 @@ def main():
                 # Append to structured log file
                 # Extract date found from summary (assuming it's part of the summary)
                 # This is a placeholder, replace with actual date extraction if implemented
-                date_found = "N/A" # Example: extract_date(summary) 
+
                 if config.get("log_file"):
                     # Call with log_file, detected color, and summary
                     append_log_entry(config["log_file"], color, summary)

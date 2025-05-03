@@ -110,8 +110,10 @@ def main():
                 formatted_date = f"{month_name} {day_with_ordinal}"
 
                 # --- Send High-Priority Color Alert --- 
-                alert_title = f"{color.capitalize()}, {formatted_date}" # NEW TITLE FORMAT
-                alert_message = summary # NEW MESSAGE FORMAT (Just summary)
+                # Use the date *found* in the analysis for the title
+                alert_title = f"{color.capitalize()}, {date_found}" 
+                # Use the summary *found* in the analysis for the message
+                alert_message = summary 
                 print(f"   [Main] Color '{color}' detected, sending high-priority alert ({alert_title})...")
                 send_ntfy_notification(
                     **ntfy_args,
